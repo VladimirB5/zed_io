@@ -1,0 +1,4 @@
+  00 W_IDLE  
+  01 W_ADDR_DAT
+  10 W_RESP
+  

@@ -1,0 +1,3 @@
+ 00 R_IDLE   
+ 01 R_AREADY 
+ 10 R_VDATA   
