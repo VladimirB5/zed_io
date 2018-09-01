@@ -42,23 +42,6 @@ module axi_gpio( // AXI4-LITE slave
   input  [4:0] button
 );
 
-  // input synchronizers
-  synchro#(8) 
-  synchro_switch( //synchro for switches
-    .clk     (ACLK),
-    .resetn  (ARESETn),
-    .data_in (switch),
-    .data_out(switch_c)
-  );
-  
-  synchro#(5) 
-  synchro_button( //synchro for buttons
-    .clk     (ACLK),
-    .resetn  (ARESETn),
-    .data_in (button),
-    .data_out(button_c)
-  );  
-
   // output registers
   reg  arready_c, arready_s; 
   reg  rvalid_c, rvalid_s;
@@ -74,6 +57,22 @@ module axi_gpio( // AXI4-LITE slave
   wire [4:0]  button_c;
   reg  [7:0]  rdata_c, rdata_s;
 
+  // input synchronizers
+  synchro#(8) 
+  synchro_switch( //synchro for switches
+    .clk     (ACLK),
+    .resetn  (ARESETn),
+    .data_in (switch),
+    .data_out(switch_c)
+  );
+  
+  synchro#(5) 
+  synchro_button( //synchro for buttons
+    .clk     (ACLK),
+    .resetn  (ARESETn),
+    .data_in (button),
+    .data_out(button_c)
+  );    
   
   // fsm read declaration
   parameter R_IDLE   = 2'b00;
@@ -229,7 +228,7 @@ module axi_gpio( // AXI4-LITE slave
         end      
       
         default: begin
-          rresp_c = DECERR;
+          rresp_c = SLVERR;
         end
       endcase
     end else if (fsm_read_s === R_VDATA) begin
@@ -279,7 +278,7 @@ module axi_gpio( // AXI4-LITE slave
           led_c = WDATA[7:0];
           bresp_c = OKAY;
         end else begin
-          bresp_c = DECERR;
+          bresp_c = SLVERR;
         end      
         awready_c = 1'b1;
         wready_c  = 1'b1;
