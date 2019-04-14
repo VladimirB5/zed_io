@@ -41,175 +41,98 @@ module axi_gpio_tb;
   reg        bready;
   wire[1 :0] bresp;
   
-  initial begin
+  // switch and buttons
+  reg [7:0] switch;
+  reg [4:0] button;
+  
+  
+  task write;
+    input reg [31:0] _addr, _data;
+    begin
+      awvalid = 1;
+      awaddr  = _addr;
+      @(posedge clk);
+      wvalid = 1;
+      wstrb   = 4'b1111;
+      wdata   = _data;
+      @(negedge awready);
+      #(1);
+      awvalid = 0;
+      wvalid  = 0;
+      awaddr  = 'b0;
+      wstrb   = 'b0;   
+      @(posedge clk);
+      #(1);
+      bready = 1;
+      @(posedge clk);
+      #(1);
+      bready = 0; 
+    end  
+  endtask 
+  
+  task read;
+    input reg [31:0] _addr;
+    //output reg [31:0] _data
+    begin
+      rready = 0;
+      araddr = 0;
+      arvalid = 0;
+      # 200;
+      @(negedge clk);
+      araddr = _addr;    
+      arvalid = 1; 
+      @(posedge clk);
+      # 1;
+      araddr = 0;    
+      arvalid = 0;
+      wait(rvalid == 1);
+      # 40;
+      @(negedge clk);
+      rready = 1;
+      @(negedge rvalid);
+      #(1);
+      rready = 0;   
+    end  
+  endtask   
+    
+  initial begin // write and read transaction
+    switch = 0;
+    button = 0;
     rready = 0; // read from address 4
     araddr = 0;
-    arvalid = 0;
-    # 200;
-    @(negedge clk);
-    araddr = 4;    
-    arvalid = 1; 
-    rready = 1;
-    @(posedge clk);
-    # 1;
-    araddr = 0;    
-    arvalid = 0;
-    wait(rvalid == 1);
-    @(negedge clk);
-    @(negedge rvalid);
-    #(1);
-    rready = 0;
-    
-    #(100); // second transaction - read from address 8
-    rready = 0;
-    araddr = 0;
-    arvalid = 0;
-    # 200;
-    @(negedge clk);
-    araddr = 8;    
-    arvalid = 1; 
-    @(posedge clk);
-    # 1;
-    araddr = 0;    
-    arvalid = 0;
-    wait(rvalid == 1);
-    # 40;
-    @(negedge clk);
-    rready = 1;
-    @(negedge rvalid);
-    #(1);
-    rready = 0;    
-    
-    #(100); // third transaction - read from address 0
-    rready = 0;
-    araddr = 0;
-    arvalid = 0;
-    # 200;
-    @(negedge clk);
-    araddr = 0;    
-    arvalid = 1; 
-    @(posedge clk);
-    # 1;
-    araddr = 0;    
-    arvalid = 0;
-    wait(rvalid == 1);
-    # 40;
-    @(negedge clk);
-    rready = 1;
-    @(negedge rvalid);
-    #(1);
-    rready = 0;     
-    
-    #(100); // fourth transaction - read from address 12
-    rready = 0;
-    araddr = 0;
-    arvalid = 0;
-    # 200;
-    @(negedge clk);
-    araddr = 12;    
-    arvalid = 1; 
-    @(posedge clk);
-    # 1;
-    araddr = 0;    
-    arvalid = 0;
-    wait(rvalid == 1);
-    # 40;
-    @(negedge clk);
-    rready = 1;
-    @(negedge rvalid);
-    #(1);
-    rready = 0;      
-  end
-  
-  initial begin // write transaction
+    arvalid = 0;  
     bready = 0;     
     awvalid = 0;
     wvalid  = 0;
     wdata   = 32'h00000000;
     awaddr  = 32'hffffffff;
     wstrb   = 'b0;
+    // transactions
     #(250); // first transaction
-    awvalid = 1;
-    awaddr  = 'b0;
+    write(0,32'h00000001);
     #(10);
-    wvalid = 1;
-    wstrb   = 'b1;
-    wdata   = 32'h000000ff;
-    @(negedge awready);
-    #(1);
-    awvalid = 0;
-    wvalid  = 0;
-    awaddr  = 'b1;
-    wstrb   = 'b0;   
-    @(posedge clk);
-    #(1);
-    bready = 1;
-    @(posedge clk);
-    #(1);
-    bready = 0;    
-
-    #(50); // second transaction
-    awvalid = 1;
-    awaddr  = 'b0;
+    read(0);
+    #(10)
+    write(32'h0000000C,32'h00001fff); // enable interrupt
     #(10);
-    wvalid = 1;
-    wstrb   = 'b1;
-    wdata   = 32'h000000AA;
-    @(negedge awready);
-    #(1);
-    awvalid = 0;
-    wvalid  = 0;
-    awaddr  = 'b1;
-    wstrb   = 'b0;   
-    @(posedge clk);
-    #(1);
-    bready = 1;
-    @(posedge clk);
-    #(1);
-    bready = 0;     
-    
-    #(1350); // third transaction -- 
-    awvalid = 1;
-    awaddr  = 'b1;
+    read(32'h0000000C); // read interrupt set
     #(10);
-    wvalid = 1;
-    wstrb   = 'b1;
-    wdata   = 32'h0000000A;
-    @(negedge awready);
-    #(1);
-    awvalid = 0;
-    wvalid  = 0;
-    awaddr  = 'b1;
-    wstrb   = 'b0;   
-    @(posedge clk);
-    #(1);
-    bready = 1;
-    @(posedge clk);
-    #(1);
-    bready = 0; 
-    
-    #(100); // fourt transaction -- write to bad address
-    awvalid = 1;
-    awaddr  = 4;
+    read(32'h00000010); // read interrupt clear   
     #(10);
-    wvalid = 1;
-    wstrb   = 'b1;
-    wdata   = 32'h000000ff;
-    @(negedge awready);
-    #(1);
-    awvalid = 0;
-    wvalid  = 0;
-    awaddr  = 'b1;
-    wstrb   = 'b0;   
-    @(posedge clk);
-    #(1);
-    bready = 1;
-    @(posedge clk);
-    #(1);
-    bready = 0;    
+    write(32'h00000010,32'h00000102); //disable interrupt
+    #(10);
+    write(32'h00000020,32'h00000000); //disable debouncer
+    #(10);
+    switch[0] = 1'b1;
+    #(20);
+    read(32'h00000008); // read interrupt status   
+    #(10);
+    write(32'h00000008,32'h00000002); // clear sts switch 1
+    #(10);
+    write(32'h00000008,32'h00000001); // clear sts switch 0    
   end
   
-  axi_gpio axi_gpio_1( // AXI4-LITE slave
+  axi_gpio_top i_axi_gpio_top( // AXI4-LITE gpio
     // Global signals
     .ACLK    (clk),
     .ARESETn (reset),
@@ -231,7 +154,7 @@ module axi_gpio_tb;
     .ARVALID(arvalid),
     .ARREADY(arready),
     .ARADDR(araddr),
-    .ARPROT('b0),
+    .ARPROT(3'b000),
     // read data channel
     .RVALID(rvalid),
     .RREADY(rready),
@@ -241,9 +164,10 @@ module axi_gpio_tb;
   // LED
     .led(),
   // switches
-    .switch(8'h55),
+    .switch(switch),
   // buttons
-    .button(5'b00111)
+    .button(button),
+    .interrupt()
   );
 
    
