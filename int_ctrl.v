@@ -57,7 +57,7 @@ module int_ctrl(
  // generate interrupt for buttons
  always @(*) begin
    button_sts_c = button_sts_s;
-   for (i = 0; i < 4 ; i = i + 1) begin
+   for (i = 0; i < 5 ; i = i + 1) begin
        button_sts_c[i] = button_sts_s[i];
      if (int_button_ena[i] == 0) begin
        button_sts_c[i] = 1'b0;

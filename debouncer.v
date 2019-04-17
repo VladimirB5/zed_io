@@ -13,8 +13,6 @@ module debouncer( // debouncer
   // registers
   reg unsigned [4:0]  time_c, time_s;
   reg unsigned [15:0] tick_c, tick_s; // clk tick
-  reg val_s; // input value previous value
-  wire val_c;
   reg fil_val_c, fil_val_s; // filtered value
  
   // sequential logic
@@ -22,20 +20,16 @@ module debouncer( // debouncer
     if (~res_n) begin
       tick_s    <= 16'h0000;
       time_s    <= 5'h00;
-      val_s     <= 1'b0;
       fil_val_s <= 1'b0;
     end
     else begin
       tick_s    <= tick_c;
       time_s    <= time_s;
-      val_s     <= val_c;
       fil_val_s <= fil_val_c;
     end
   end 
  
-  // asynchronous logic
-  assign val_c = (ena == 1'b1) ? data_in : 1'b0; // save input to register
-  
+  // asynchronous logic  
   always @(*) begin
     fil_val_c = fil_val_s;
     if (ena == 1'b1 && fil_val_s != data_in) begin

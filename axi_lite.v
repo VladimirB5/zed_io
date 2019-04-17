@@ -193,7 +193,7 @@ module axi_lite( // AXI4-LITE slave
   always @(*) begin
     rdata_c = 32'h00000000;
     rresp_c = OKAY;
-    if (ARVALID == 1'b1 && fsm_read_s === R_AREADY) begin
+    if (ARVALID == 1'b1 && fsm_read_s == R_AREADY) begin
         case (ARADDR[5:2])
         4'b0000: begin // 0x00
           rdata_c = {24'h000000, led_s};
@@ -243,7 +243,7 @@ module axi_lite( // AXI4-LITE slave
           rresp_c = DECERR;
         end
       endcase
-    end else if (fsm_read_s === R_VDATA) begin
+    end else if (fsm_read_s == R_VDATA) begin
       rdata_c = rdata_s;
       rresp_c = rresp_s;
     end else begin
@@ -277,7 +277,6 @@ module axi_lite( // AXI4-LITE slave
     bvalid_c  = 1'b0;
     case (fsm_write_c)
       W_IDLE: begin
-        bresp_c = OKAY;
         awready_c = 1'b0;
         wready_c  = 1'b0;
         bvalid_c  = 1'b0;
@@ -304,8 +303,8 @@ module axi_lite( // AXI4-LITE slave
     led_c            = led_s;
     switch_ena_c     = switch_ena_s;
     button_ena_c     = button_ena_s;
-    button_pos_c     = button_pos_c;
-    button_neg_c     = button_neg_c;
+    button_pos_c     = button_pos_s;
+    button_neg_c     = button_neg_s;
     deb_switch_ena_c = deb_switch_ena_s;
     deb_button_ena_c = deb_button_ena_s;
     deb_time_c       = deb_time_s;
