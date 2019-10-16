@@ -56,6 +56,7 @@ module axi_gpio_top( // AXI4-LITE slave
   wire [7:0] switch_deb;
   wire [4:0] button_deb;  
   wire [4:0] deb_time;
+  wire       invoke_int;
   
   // input synchronizers
   synchro#(8) 
@@ -117,7 +118,8 @@ module axi_gpio_top( // AXI4-LITE slave
    .int_button_clr(int_button_clr),
    .button_posedge(button_posedge),
    .button_negedge(button_negedge), 
-  
+   .invoke_int(invoke_int),
+   
    // interrupt output
    .interrupt(interrupt)
 );
@@ -166,7 +168,8 @@ module axi_gpio_top( // AXI4-LITE slave
    .button_negedge(button_negedge), 
    .deb_switch_ena(deb_switch_ena),
    .deb_button_ena(deb_button_ena),
-   .deb_time(deb_time)
+   .deb_time(deb_time),
+   .invoke_int_test(invoke_int)
 );  
 
 endmodule // axi_gpio_top

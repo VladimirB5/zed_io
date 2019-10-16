@@ -46,7 +46,8 @@ module axi_lite( // AXI4-LITE slave
   output [4:0] button_negedge, // negative edge for interrupt 
   output [7:0] deb_switch_ena, // debouncer ena switch
   output [4:0] deb_button_ena, // debouncer button switch
-  output [4:0] deb_time        // debounce time
+  output [4:0] deb_time,       // debounce time
+  output       invoke_int_test
 );
 
   // internal registers
@@ -70,7 +71,8 @@ module axi_lite( // AXI4-LITE slave
   reg  [7:0] deb_switch_ena_c, deb_switch_ena_s;
   reg  [4:0] deb_button_ena_c, deb_button_ena_s;
   reg  [4:0] deb_time_c, deb_time_s; 
-    
+  reg        invoke_int_c, invoke_int_s;
+  
   // fsm read declaration
   parameter R_IDLE   = 2'b00;
   parameter R_AREADY = 2'b01;
@@ -118,6 +120,7 @@ module axi_lite( // AXI4-LITE slave
       deb_switch_ena_s <= 8'hff;
       deb_button_ena_s <= 5'h1f;
       deb_time_s       <= 5'b0;
+      invoke_int_s     <= 1'b0;
     end
     else begin
       arready_s   <= arready_c;
@@ -141,7 +144,8 @@ module axi_lite( // AXI4-LITE slave
       button_neg_s     <= button_neg_c;
       deb_switch_ena_s <= deb_switch_ena_c;
       deb_button_ena_s <= deb_button_ena_c;
-      deb_time_s       <= deb_time_c;      
+      deb_time_s       <= deb_time_c;
+      invoke_int_s     <= invoke_int_c;
     end
   end
   
@@ -238,6 +242,10 @@ module axi_lite( // AXI4-LITE slave
         4'b1010: begin // 0x28
           rdata_c = 32'h7e8155aa;
         end      
+        
+        4'b1011: begin // 0x2C
+          rdata_c = 32'h00000000;
+        end           
            
         default: begin
           rresp_c = DECERR;
@@ -308,6 +316,7 @@ module axi_lite( // AXI4-LITE slave
     deb_switch_ena_c = deb_switch_ena_s;
     deb_button_ena_c = deb_button_ena_s;
     deb_time_c       = deb_time_s;
+    invoke_int_c     = 1'b0;
     if (switch_clr_s != 8'h00) begin
       switch_clr_c = 8'h00;
     end else begin
@@ -424,6 +433,12 @@ module axi_lite( // AXI4-LITE slave
         4'b1010: begin
         end        
         
+        4'b1011: begin // 0x2C invoke interrupt - test
+          if (WSTRB[0] == 1'b1 && WDATA[0] == 1'b1) begin
+            invoke_int_c = 1'b1;
+          end  
+        end          
+        
         default: begin
           bresp_c = DECERR;
         end        
@@ -453,4 +468,5 @@ module axi_lite( // AXI4-LITE slave
   assign deb_switch_ena = deb_switch_ena_s;
   assign deb_button_ena = deb_button_ena_s;
   assign deb_time       = deb_time_s;
+  assign invoke_int_test= invoke_int_s;
 endmodule // axi_lite

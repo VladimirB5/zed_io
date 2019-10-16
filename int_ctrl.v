@@ -14,6 +14,7 @@ module int_ctrl(
   input  [4:0] int_button_clr, // interrupt button clear
   input  [4:0] button_posedge, // positive edge for interrupt
   input  [4:0] button_negedge, // negative edge for interrupt 
+  input        invoke_int,     // invoke all enabled interrupts (test purpose)
   
   // interrupt output
   output       interrupt
@@ -62,7 +63,9 @@ module int_ctrl(
      if (int_button_ena[i] == 0) begin
        button_sts_c[i] = 1'b0;
      end else begin
-       if (button[i] != button_val_s[i]) begin
+       if (invoke_int == 1'b1) begin // invoking interrupt
+         button_sts_c[i] = 1'b1;
+       end else if (button[i] != button_val_s[i]) begin
          if (button[i] == 1'b1 && button_posedge[i] == 1'b1 || button[i] == 1'b0 && button_negedge[i] == 1'b1) begin
            button_sts_c[i] = 1'b1; // posedge or negedge on button
          end 
@@ -80,7 +83,7 @@ module int_ctrl(
      if (int_switch_ena[j] == 0) begin
        switch_sts_c[j] = 1'b0;
      end else begin
-       if (switch[j] != switch_val_s[j]) begin
+       if (switch[j] != switch_val_s[j] || invoke_int == 1'b1) begin
          switch_sts_c[j] = 1'b1;
        end else if (int_switch_clr[j] == 1'b1) begin
          switch_sts_c[j] = 1'b0;

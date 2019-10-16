@@ -11,7 +11,7 @@ module axi_gpio_tb;
      # 29 reset = 1;
      # 11 reset = 0;
      # 20 reset = 1;
-     # 2000 //$stop;
+     # 600us //$stop;
      $finish;
   end
 
@@ -129,7 +129,52 @@ module axi_gpio_tb;
     #(10);
     write(32'h00000008,32'h00000002); // clear sts switch 1
     #(10);
-    write(32'h00000008,32'h00000001); // clear sts switch 0    
+    write(32'h00000008,32'h00000001); // clear sts switch 0
+    #(10);
+    write(32'h00000014,32'h00001f1f); // set button active edge
+    #(10);
+    read(32'h00000014); // read button active edge 
+    #(10);
+    write(32'h0000002c,32'h00000001); // invoke interrupt
+    #(100);
+    // clear all statuses
+    write(32'h00000008,32'h00001fff);
+    #(10);
+    
+    // buttons without debouncers
+    // interrupt on button[0] disabled on button[1] enabled
+    button[0] = 1;
+    #(100);
+    button[0] = 0;
+    button[1] = 1;
+    #(100);
+    write(32'h00000008,32'h00000200); // clear interrupt pending
+    #(10);    
+    button[1] = 0;    
+    #(100);
+    
+    // clear interrupt pending on button 2
+    write(32'h00000008,32'h00000200);
+    #(10);
+    
+    // enable debouncer for button[2]
+    write(32'h00000020,32'h00000400); //enable debouncer 
+    write(32'h00000014,32'h0000001f); // interrupt on posedge
+    #(10);    
+    button[2] = 1;
+    #(101us);
+    button[2] = 0;      
+    #(10);
+    write(32'h00000008,32'h00000400); // clear interrupt pending
+    #(10);     
+    write(32'h00000024,32'h00000001); // debouncer time to 200us
+    #(10);     
+    
+    #(50us);
+    button[2] = 1;
+    #(205us);
+    button[2] = 0;
+    
   end
   
   axi_gpio_top i_axi_gpio_top( // AXI4-LITE gpio

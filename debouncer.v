@@ -8,7 +8,7 @@ module debouncer( // debouncer
   output       data_out // output to debouncer     
 );
   // parameters
-  parameter TIME_TICK = 10000;
+  parameter TIME_TICK = 10000; //10000
   
   // registers
   reg unsigned [4:0]  time_c, time_s;
@@ -24,7 +24,7 @@ module debouncer( // debouncer
     end
     else begin
       tick_s    <= tick_c;
-      time_s    <= time_s;
+      time_s    <= time_c;
       fil_val_s <= fil_val_c;
     end
   end 
@@ -32,6 +32,7 @@ module debouncer( // debouncer
   // asynchronous logic  
   always @(*) begin
     fil_val_c = fil_val_s;
+    time_c    = time_s;
     if (ena == 1'b1 && fil_val_s != data_in) begin
       if (tick_s == TIME_TICK) begin
         tick_c = 16'h0000;
