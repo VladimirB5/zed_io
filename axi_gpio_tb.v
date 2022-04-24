@@ -11,7 +11,7 @@ module axi_gpio_tb;
      # 29 reset = 1;
      # 11 reset = 0;
      # 20 reset = 1;
-     # 600us //$stop;
+     # 600000; //$stop;
      $finish;
   end
 
@@ -162,7 +162,7 @@ module axi_gpio_tb;
     write(32'h00000014,32'h0000001f); // interrupt on posedge
     #(10);    
     button[2] = 1;
-    #(101us);
+    #101000;
     button[2] = 0;      
     #(10);
     write(32'h00000008,32'h00000400); // clear interrupt pending
@@ -170,10 +170,14 @@ module axi_gpio_tb;
     write(32'h00000024,32'h00000001); // debouncer time to 200us
     #(10);     
     
-    #(50us);
+    #10000;
     button[2] = 1;
-    #(205us);
+    #10000;
     button[2] = 0;
+    #200000;
+    button[2] = 1;
+    #205000;
+    button[2] = 1;
     
   end
   

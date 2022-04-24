@@ -7,50 +7,44 @@ module debouncer( // debouncer
   input        data_in, // input to debouncer
   output       data_out // output to debouncer     
 );
-  // parameters
-  parameter TIME_TICK = 10000; //10000
   
   // registers
-  reg unsigned [4:0]  time_c, time_s;
-  reg unsigned [15:0] tick_c, tick_s; // clk tick
+  reg unsigned [17:0]  cnt_c, cnt_s; // 13 + 5 bits
   reg fil_val_c, fil_val_s; // filtered value
+
+  wire limit_reached;
  
   // sequential logic
   always @(posedge clk or negedge res_n) begin
     if (~res_n) begin
-      tick_s    <= 16'h0000;
-      time_s    <= 5'h00;
+      cnt_s    <= 18'h00000;
       fil_val_s <= 1'b0;
     end
     else begin
-      tick_s    <= tick_c;
-      time_s    <= time_c;
-      fil_val_s <= fil_val_c;
+      if (ena == 1'b1) begin
+        cnt_s     <= cnt_c;
+        fil_val_s <= fil_val_c;
+      end
     end
   end 
  
   // asynchronous logic  
   always @(*) begin
-    fil_val_c = fil_val_s;
-    time_c    = time_s;
-    if (ena == 1'b1 && fil_val_s != data_in) begin
-      if (tick_s == TIME_TICK) begin
-        tick_c = 16'h0000;
-        if (time_s == deb_time) begin
-          time_c = 5'h00;
-          fil_val_c = data_in;
-        end else begin
-          time_c = time_s + 1;
-        end
-      end else begin
-        tick_c = tick_s + 1; 
-      end
-    end else begin
-      tick_c = 16'h0000;
-      time_c = 5'h00;      
+    fil_val_c <= fil_val_s;
+    if (data_in != fil_val_s && (deb_time + 1) == cnt_s[17:13]) begin
+      fil_val_c <= data_in;
     end
   end
-  
+
+  always @(*) begin
+    cnt_c = cnt_s;
+    if (ena == 1'b1 && data_in != fil_val_s) begin
+      cnt_c = cnt_s + 1;
+    end else begin
+      cnt_c = 18'h00000;
+    end
+  end
+
   // output assigment
   assign data_out = (ena == 1'b1) ? fil_val_s : data_in;
 endmodule // debouncer
