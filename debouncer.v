@@ -10,14 +10,13 @@ module debouncer( // debouncer
   
   // registers
   reg unsigned [17:0]  cnt_c, cnt_s; // 13 + 5 bits
+  // [17:13] (for compare) + [12:0] (2**13 * (1/100Mhz) =~ 82 us)
   reg fil_val_c, fil_val_s; // filtered value
 
-  wire limit_reached;
- 
   // sequential logic
   always @(posedge clk or negedge res_n) begin
     if (~res_n) begin
-      cnt_s    <= 18'h00000;
+      cnt_s     <= 18'h00000;
       fil_val_s <= 1'b0;
     end
     else begin
@@ -30,9 +29,9 @@ module debouncer( // debouncer
  
   // asynchronous logic  
   always @(*) begin
-    fil_val_c <= fil_val_s;
+    fil_val_c = fil_val_s;
     if (data_in != fil_val_s && (deb_time + 1) == cnt_s[17:13]) begin
-      fil_val_c <= data_in;
+      fil_val_c = data_in;
     end
   end
 
