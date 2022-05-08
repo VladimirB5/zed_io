@@ -1,0 +1,13 @@
+zed_io@40000000 {
+  compatible = "zlnx,zed_io";
+  reg = <40000000 0x100>;
+  interrupt-parent = <0x04>;
+  interrupts = <0x00 0x1D 0x04>;
+  //The first number is a flag indicating if the interrupt is an SPI
+  //(shared peripheral interrupt). A nonzero value means it is an SPI.
+  //This impacts offsets added to translate the interrupt number (16 for SPI, 32 for non-SPI).
+  //This is confusing - ZYNQ have SPI, and for SPI int that case 0x00 is used.... so use 32 as a offset
+  //The second number is the interrupt number.
+  //The third number is the type of interrupt: 0 = Leave it as it was (power-up default or what the bootloader set it to, if it did).
+  //1 = Rising edge. 4 = Level sensitive, active high.
+};

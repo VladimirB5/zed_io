@@ -1,0 +1,9 @@
+Modul control ZEDboard LEDS, buttons and switches,
+when button or switches is pressed, interrupt can be generated.
+To every button and switch debouncer also can be connected (enabled by default).
+
+Simple character driver for linux and example of user space app is avaliable.
+
+Version of kernel and gcc:
+kernel : linux-xilinx-v2022.1 (tag)
+gcc    : arm-buildroot-linux-uclibcgnueabihf-gcc.br_real (Buildroot 2022.02.1) 10.3.0
