@@ -32,7 +32,7 @@
 #define  C_DEB_ENA_OFST 0x20       // debouncer ena
 #define  C_DEB_TIME_OFST 0x24      // debounce time
 #define  C_TEST_OFST 0x28          // test pattern
-#define  C_INVOKE_INT_OFST 0x2C    // test pattern
+#define  C_INVOKE_INT_OFST 0x2C    // test invoke interrupt
 #define  C_NUM_REG 9               // number of readable registers
 
 /* Use '81' as magic number */
@@ -63,7 +63,7 @@ static struct task_struct *task = NULL; //
 struct resource *res;
 
 // The prototype functions for the character driver -- must come before the struct definition
-static int send_sig_info(int sig, struct siginfo *info, struct task_struct *p);
+int send_sig_info(int sig, struct kernel_siginfo *info, struct task_struct *p);
 static int     dev_open(struct inode *, struct file *);
 static int     dev_release(struct inode *, struct file *);
 static ssize_t dev_read(struct file *, char *, size_t, loff_t *);
@@ -132,6 +132,7 @@ fail_irq:
 static int mydriver_of_remove(struct platform_device *of_dev)
 {
     free_irq(res->start, NULL);
+    return 0;
 }
 
 static const struct of_device_id mydriver_of_match[] = {
@@ -186,7 +187,7 @@ static int __init zed_io_init(void){
    }
    
    // request for acces to IO
-   virt=ioremap_nocache(C_ADDR_DEV, 4096);
+   virt=ioremap(C_ADDR_DEV, 4096);
    
    platform_driver_register(&mydrive_of_driver);
    
@@ -358,12 +359,12 @@ static int dev_release(struct inode *inodep, struct file *filep){
  *  return returns IRQ_HANDLED if successful -- should return IRQ_NONE otherwise.
  */
 static irq_handler_t zed_io_irq_handler(unsigned int irq, void *dev_id, struct pt_regs *regs){
-   struct siginfo info;
+   struct kernel_siginfo info;
    writel(0x00000fff ,virt + C_BUTT_SW_INT_OFST);  // clear all pending interrupt 
    
    // send signal to user space
  
-   memset(&info, 0, sizeof(struct siginfo));
+   memset(&info, 0, sizeof(struct kernel_siginfo));
    info.si_signo = SIGETX;
    info.si_code = SI_QUEUE;
    info.si_int = 1;
